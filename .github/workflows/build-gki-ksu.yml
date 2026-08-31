@@ -453,11 +453,12 @@ jobs:
           cp ../susfs4ksu/kernel_patches/fs/susfs.c fs/
           cp ../susfs4ksu/kernel_patches/include/linux/susfs.h include/linux/
           cp ../susfs4ksu/kernel_patches/include/linux/susfs_def.h include/linux/
-          patch -p1 < "${{ github.workspace }}/.github/patches/xxksu/51_deinlined_susfs_hooks_gki-android14-6.1.patch" || true
+          bash "${{ github.workspace }}/.github/scripts/susfs_deinlined.sh" "${{ github.workspace }}/.github/patches/xxksu/50_add_susfs_in_gki-android14-6.1.patch"
+          patch -p1 < deinlined.patch
+          patch -p1 < "${{ github.workspace }}/.github/patches/xxksu/55_try_umount_for_susfs.patch"
 
           echo "Applying SuSFS patch to KernelSU..."
           ( cd KernelSU && patch -p1 -l --fuzz=3 < <(curl -fsSL "https://github.com/midori01/KernelSU/commit/xx.patch") )
-          #( cd KernelSU && patch -p1 -l --fuzz=3 < "${{ github.workspace }}/.github/patches/xxksu/11_enable_susfs_for_ksu.patch" )
 
       - name: Generate Defconfig
         run: |
