@@ -1120,9 +1120,9 @@ jobs:
             SUSFS_DISPLAY="\`v${SUSFS_VER#v}\`"
           fi
           if [ -n "$KSU_COMMIT" ]; then
-            KSU_DISPLAY="\`$KSU_BRANCH\` (v\`$KSU_VER\` @ \`$KSU_COMMIT\`)"
+            KSU_DISPLAY="\`$KSU_BRANCH\` (\`$KSU_VER\` @ \`$KSU_COMMIT\`)"
           else
-            KSU_DISPLAY="\`$KSU_BRANCH\` (v\`$KSU_VER\`)"
+            KSU_DISPLAY="\`$KSU_BRANCH\` (\`$KSU_VER\`)"
           fi
 
           PRERELEASE_FLAG=""
