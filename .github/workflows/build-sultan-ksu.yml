@@ -258,12 +258,7 @@ jobs:
           K_VER="${K_VER// /}"
           S_TAG="${S_TAG// /}"
           
-          # Get toolchain info
-          RAW_TOOLCHAIN_STR=$(${TOOLCHAIN_PATH}gcc --version 2>&1 | head -n1)
-          TOOLCHAIN_DISPLAY=$(echo "$RAW_TOOLCHAIN_STR" | sed -n 's/^[^(]*(\([^)]*\)).*/\1/p')
-          if [ -z "$TOOLCHAIN_DISPLAY" ]; then
-            TOOLCHAIN_DISPLAY="$RAW_TOOLCHAIN_STR"
-          fi
+          TOOLCHAIN_DISPLAY="Arm GNU Toolchain ${{ env.ARM_TOOLCHAIN_VERSION }}"
           
           # Get kernel version dynamically from kernel
           KERNEL_VER=$(make -C sultan -s kernelversion 2>/dev/null || true)
@@ -301,7 +296,7 @@ jobs:
           echo "======================================"
           echo "🏷️ Sultan Tag: $S_TAG"
           echo "🐧 Kernel Base: Linux $KERNEL_VER"
-          echo "🔧 KSU Branch: $KSU_BRANCH (+$K_VER)"
+          echo "🔧 KSU Branch: $KSU_BRANCH (v$K_VER)"
           echo "🪝 Hook Mode: manual"
           echo "🛡️ SUSFS: ${{ matrix.enable_susfs }} ($SUSFS_VER)"
           echo "⚙️ Toolchain: $TOOLCHAIN_DISPLAY"
@@ -765,12 +760,7 @@ jobs:
           K_VER="${K_VER// /}"
           S_TAG="${S_TAG// /}"
           
-          # Get toolchain info
-          RAW_TOOLCHAIN_STR=$(${TOOLCHAIN_PATH}gcc --version 2>&1 | head -n1)
-          TOOLCHAIN_DISPLAY=$(echo "$RAW_TOOLCHAIN_STR" | sed -n 's/^[^(]*(\([^)]*\)).*/\1/p')
-          if [ -z "$TOOLCHAIN_DISPLAY" ]; then
-            TOOLCHAIN_DISPLAY="$RAW_TOOLCHAIN_STR"
-          fi
+          TOOLCHAIN_DISPLAY="Arm GNU Toolchain ${{ env.ARM_TOOLCHAIN_VERSION }}"
           
           # Get kernel version dynamically from kernel
           KERNEL_VER=$(make -C sultan -s kernelversion 2>/dev/null || true)
@@ -808,7 +798,7 @@ jobs:
           echo "======================================"
           echo "🏷️ Sultan Tag: $S_TAG"
           echo "🐧 Kernel Base: Linux $KERNEL_VER"
-          echo "🔧 KSU Branch: $KSU_BRANCH (+$K_VER)"
+          echo "🔧 KSU Branch: $KSU_BRANCH (v$K_VER)"
           echo "🪝 Hook Mode: lsm (Hookless/BL)"
           echo "🛡️ SUSFS: ${{ matrix.enable_susfs }} ($SUSFS_VER)"
           echo "⚙️ Toolchain: $TOOLCHAIN_DISPLAY"
@@ -1110,7 +1100,7 @@ jobs:
           fi
 
           if [ -f "./all_artifacts/build_metadata.env" ]; then
-            eval "$(grep -E '^(KERNEL_VER|KSU_VER|S_TAG|TOOLCHAIN_DISPLAY|SUSFS_VER|SUSFS_COMMIT)=' ./all_artifacts/build_metadata.env 2>/dev/null || true)"
+            eval "$(grep -E '^(KERNEL_VER|KSU_VER|KSU_COMMIT|S_TAG|TOOLCHAIN_DISPLAY|SUSFS_VER|SUSFS_COMMIT)=' ./all_artifacts/build_metadata.env 2>/dev/null || true)"
           fi
           if [ -z "$SUSFS_VER" ] || [ "$SUSFS_VER" = "unknown" ]; then
             DETECTED_SUSFS=$(find ./all_artifacts -name "*SUSFS_*.zip" -type f | head -n1 | sed -E 's/.*SUSFS_([^-]+)-.*/\1/' || true)
@@ -1118,10 +1108,13 @@ jobs:
               SUSFS_VER="$DETECTED_SUSFS"
             fi
           fi
+          KERNEL_VER="${KERNEL_VER:-6.1}"
+          KSU_VER="${KSU_VER:-unknown}"
+          TOOLCHAIN_DISPLAY="${TOOLCHAIN_DISPLAY:-ARM GNU Toolchain}"
+
           if [ -z "$SUSFS_VER" ] || [ "$SUSFS_VER" = "unknown" ]; then
-            SUSFS_VER="v2.2.0"
-          fi
-          if [ -n "$SUSFS_COMMIT" ]; then
+            SUSFS_DISPLAY="\`unknown\`"
+          elif [ -n "$SUSFS_COMMIT" ]; then
             SUSFS_DISPLAY="\`v${SUSFS_VER#v} (${SUSFS_COMMIT})\`"
           else
             SUSFS_DISPLAY="\`v${SUSFS_VER#v}\`"
@@ -1129,11 +1122,8 @@ jobs:
           if [ -n "$KSU_COMMIT" ]; then
             KSU_DISPLAY="\`$KSU_BRANCH\` (v\`$KSU_VER\` @ \`$KSU_COMMIT\`)"
           else
-            KSU_DISPLAY="\`$KSU_BRANCH\` (+$KSU_VER)"
+            KSU_DISPLAY="\`$KSU_BRANCH\` (v\`$KSU_VER\`)"
           fi
-          TOOLCHAIN_DISPLAY="${TOOLCHAIN_DISPLAY:-ARM GNU Toolchain}"
-          KERNEL_VER="${KERNEL_VER:-6.1}"
-          KSU_VER="${KSU_VER:-unknown}"
 
           PRERELEASE_FLAG=""
           if [ "$KSU_BRANCH" = "staging" ]; then
@@ -1151,11 +1141,11 @@ jobs:
             echo "| Item | Details |"
             echo "| :--- | :--- |"
             echo "| **Device** | Google Pixel 7 / 7 Pro (\`gs201\` — Cheetah / Panther) |"
-            echo "| **Kernel Base** | Sultan Kernel (Linux $KERNEL_VER) |"
+            echo "| **Kernel Base** | \`Sultan Kernel (Linux $KERNEL_VER)\` |"
             echo "| **KernelSU** | $KSU_DISPLAY |"
             echo "| **SuSFS** | $SUSFS_DISPLAY |"
-            echo "| **Compiler** | $TOOLCHAIN_DISPLAY |"
-            echo "| **Build Date** | $BUILD_TIME |"
+            echo "| **Compiler** | \`$TOOLCHAIN_DISPLAY\` |"
+            echo "| **Build Date** | \`$BUILD_TIME\` |"
           } > release_body.md
 
           if gh release view "$TAG" >/dev/null 2>&1; then
