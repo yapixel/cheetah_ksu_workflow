@@ -403,7 +403,7 @@ jobs:
           
           bash "${{ github.workspace }}/.github/scripts/susfs_deinlined.sh" "../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch"
           patch -p1 < deinlined.patch
-          patch -p1 < "${{ github.workspace }}/.github/patches/xxksu/55_try_umount_for_susfs.patch"
+          #patch -p1 < "${{ github.workspace }}/.github/patches/xxksu/55_try_umount_for_susfs.patch"
 
           echo "🔧 Applying SuSFS patch to KernelSU..."
           cd KernelSU
