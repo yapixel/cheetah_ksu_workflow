@@ -160,7 +160,7 @@ jobs:
           TOOLCHAIN_DIR="$GITHUB_WORKSPACE/arm-gnu-toolchain-${{ env.ARM_TOOLCHAIN_VERSION }}-x86_64-aarch64-none-linux-gnu"
           if [ ! -d "$TOOLCHAIN_DIR/bin" ]; then
             echo "⚡ Cache miss: Downloading ARM GNU Toolchain ${{ env.ARM_TOOLCHAIN_VERSION }} with aria2c..."
-            BASE_URL="https://developer.arm.com/-/media/Files/downloads/gnu/${{ env.ARM_TOOLCHAIN_VERSION }}/binrel/"
+            BASE_URL="https://gitlab.arm.com/api/v4/projects/tooling%2Fgnu-toolchains-for-arm/packages/generic/gnu-toolchain/"
             ARCHIVE="arm-gnu-toolchain-${{ env.ARM_TOOLCHAIN_VERSION }}-x86_64-aarch64-none-linux-gnu.tar.xz"
             aria2c -s 16 -x 16 -k 1M "${BASE_URL}/${ARCHIVE}" -o arm-toolchain.tar.xz || { echo "❌ Failed to download toolchain"; exit 1; }
             tar -xf arm-toolchain.tar.xz || { echo "❌ Failed to extract toolchain"; exit 1; }
