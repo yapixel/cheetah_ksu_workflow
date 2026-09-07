@@ -60,7 +60,7 @@ env:
   SUSFS_REPO_BRANCH: sultan-shiba-susfs-minimal
   SCRIPTS_REPO: https://github.com/TheSillyOk/sh
   KSU_REPO: backslashxx/KernelSU
-  ARM_TOOLCHAIN_VERSION: "14.2.rel1"
+  ARM_TOOLCHAIN_VERSION: "15.3.rel1"
   CCACHE_DIR: "${{ github.workspace }}/.ccache"
   CCACHE_COMPILERCHECK: "content"
   CCACHE_NOHASHDIR: "true"
