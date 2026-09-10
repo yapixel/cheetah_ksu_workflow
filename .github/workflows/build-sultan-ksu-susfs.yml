@@ -401,7 +401,7 @@ jobs:
           
           echo "✅ SuSFS files copied"
           
-          bash "../susfs4ksu/susfs_deinlined.sh" "../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch"
+          bash "${{ github.workspace }}/.github/scripts/susfs_deinlined.sh" "../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch"
           patch -p1 < deinlined.patch
           #patch -p1 < "${{ github.workspace }}/.github/patches/xxksu/55_try_umount_for_susfs.patch"
 
@@ -879,7 +879,7 @@ jobs:
           
           echo "✅ SuSFS files copied"
           
-          bash "../susfs4ksu/susfs_deinlined.sh" "../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch"
+          bash "${{ github.workspace }}/.github/scripts/susfs_deinlined.sh" "../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch"
           patch -p1 < deinlined.patch
           patch -p1 < "${{ github.workspace }}/.github/patches/xxksu/55_try_umount_for_susfs.patch"
 
