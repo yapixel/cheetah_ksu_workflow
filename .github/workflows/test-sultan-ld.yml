@@ -282,6 +282,10 @@ jobs:
           LTO_STRATEGY="${{ github.event.inputs.lto_mode }}"
           echo "🔧 Applying LTO strategy: $LTO_STRATEGY"
           
+          # Ensure GCC LTO uses all available vCPUs instead of falling back to 1 core on jobserver failure
+          NPROC=$(nproc --all)
+          sed -i "s/-flto=jobserver/-flto=$NPROC/g" Makefile
+
           if [ "$LTO_STRATEGY" = "no_ipa_pta" ]; then
             echo "⚡ Removing -fipa-pta from sultan/Makefile (retaining LTO, skipping expensive pointer analysis)..."
             sed -i 's/-fipa-pta //g' Makefile
@@ -290,7 +294,7 @@ jobs:
           elif [ "$LTO_STRATEGY" = "disable_lto" ]; then
             echo "⚡ Will disable CONFIG_LTO_GCC after defconfig generation."
           else
-            echo "ℹ️ Retaining stock Sultan LTO settings (with -fipa-pta)."
+            echo "ℹ️ Retaining stock Sultan LTO settings (with -fipa-pta, parallel LTO enabled)."
           fi
 
       - name: Generate Defconfig
@@ -340,6 +344,7 @@ jobs:
         env:
           KBUILD_BUILD_USER: test-user
           KBUILD_BUILD_HOST: test-host
+          KBUILD_BUILD_TIMESTAMP: "Fri Jan 9 16:33:46 UTC 2026"
           CROSS_COMPILE: ${{ env.TOOLCHAIN_PATH }}
           CCACHE_BASEDIR: ${{ github.workspace }}
         run: |
