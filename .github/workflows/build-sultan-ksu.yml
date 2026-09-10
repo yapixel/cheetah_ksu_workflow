@@ -54,6 +54,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  SULTAN_SOURCE: https://github.com/kerneltoast/android_kernel_google_tensynos
+  SULTAN_TAG: 20260314
   ANYKERNEL_REPO: https://github.com/TheWildJames/AnyKernel3.git
   PATCHES_REPO: https://github.com/yapixel/kernel_patches
   SUSFS_REPO_URL: https://gitlab.com/simonpunk/susfs4ksu
@@ -193,7 +195,7 @@ jobs:
       - name: Clone Source
         run: |
           echo "🔄 Cloning source repositories..."
-          git clone --depth=1 --single-branch --no-tags https://github.com/kerneltoast/android_kernel_google_tensynos -b 16.0.0-sultan sultan &
+          git clone --depth=1 --single-branch "${{ env.SULTAN_SOURCE }}" -b "${{ env.SULTAN_TAG }}" sultan &
           PID_SULTAN=$!
           
           git clone --depth=1 --single-branch --no-tags "${{ env.ANYKERNEL_REPO }}" -b sultan-gs201 AK3 &
@@ -238,7 +240,10 @@ jobs:
           echo "📊 Gathering build metadata..."
           
           # Get Sultan tag
-          S_TAG=$(git -C sultan tag --sort=-committerdate | head -n1)
+          S_TAG=$(git -C sultan describe --tags --exact-match 2>/dev/null || git -C sultan tag --sort=-committerdate 2>/dev/null | head -n1)
+          if [ -z "$S_TAG" ]; then
+            S_TAG="${{ env.SULTAN_TAG }}"
+          fi
           if [ -z "$S_TAG" ]; then
             echo "⚠️  Warning: No git tags found in sultan repo, using 'latest'"
             S_TAG="latest"
@@ -695,7 +700,7 @@ jobs:
       - name: Clone Source
         run: |
           echo "🔄 Cloning source repositories..."
-          git clone --depth=1 --single-branch --no-tags https://github.com/kerneltoast/android_kernel_google_tensynos -b 16.0.0-sultan sultan &
+          git clone --depth=1 --single-branch "${{ env.SULTAN_SOURCE }}" -b "${{ env.SULTAN_TAG }}" sultan &
           PID_SULTAN=$!
           
           git clone --depth=1 --single-branch --no-tags "${{ env.ANYKERNEL_REPO }}" -b sultan-gs201 AK3 &
@@ -740,7 +745,10 @@ jobs:
           echo "📊 Gathering build metadata..."
           
           # Get Sultan tag
-          S_TAG=$(git -C sultan tag --sort=-committerdate | head -n1)
+          S_TAG=$(git -C sultan describe --tags --exact-match 2>/dev/null || git -C sultan tag --sort=-committerdate 2>/dev/null | head -n1)
+          if [ -z "$S_TAG" ]; then
+            S_TAG="${{ env.SULTAN_TAG }}"
+          fi
           if [ -z "$S_TAG" ]; then
             echo "⚠️  Warning: No git tags found in sultan repo, using 'latest'"
             S_TAG="latest"
