@@ -344,7 +344,6 @@ jobs:
         env:
           KBUILD_BUILD_USER: test-user
           KBUILD_BUILD_HOST: test-host
-          KBUILD_BUILD_TIMESTAMP: "Fri Jan 9 16:33:46 UTC 2026"
           CROSS_COMPILE: ${{ env.TOOLCHAIN_PATH }}
           CCACHE_BASEDIR: ${{ github.workspace }}
         run: |
