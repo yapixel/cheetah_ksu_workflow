@@ -4,15 +4,15 @@
 # Script:      susfs_deinlined.sh
 # Description: Converts official SUSFS inline-hook patch to a de-inlined version
 # Author:      midori01 <lv@lvlv.lv>, Gemini
-# Version:     2.1.1
-# Date:        2026-09-14
+# Version:     2.1.2
+# Date:        2026-09-18
 # ==============================================================================
 
 set -e
 
 if [ "$1" = "-v" ] || [ "$1" = "--version" ]; then
     VERSION=$(grep -m1 '^# Version:' "${BASH_SOURCE[0]:-$0}" 2>/dev/null | cut -d: -f2 | xargs)
-    echo "susfs_deinlined.sh v${VERSION:-2.1.1}"
+    echo "susfs_deinlined.sh v${VERSION:-2.1.2}"
     exit 0
 fi
 
@@ -228,6 +228,57 @@ def process_normal_file(body, target):
 
     return result
 
+def split_namespace_compound_hunk(body):
+    """
+    Splits compound header/declaration hunk in fs/namespace.c into two separate hunks:
+    1) include <linux/susfs_def.h>
+    2) CONFIG_KSU_SUSFS_SUS_MOUNT declarations
+    This prevents context drift failures when vendor kernels (e.g. Sultan Android 17 / CP2A)
+    introduce additional headers such as <trace/hooks/blk.h> between internal.h and mount_max.
+    """
+    result = []
+    i = 0
+    while i < len(body):
+        line = body[i]
+        if line.startswith("@@") and i + 15 < len(body):
+            window = "\n".join(body[i:i + 35])
+            if "susfs_def.h" in window and "CONFIG_KSU_SUSFS_SUS_MOUNT" in window and "sysctl_mount_max" in window:
+                hunk1 = [
+                    "@@ -32,6 +32,9 @@",
+                    " #include <linux/fs_context.h>",
+                    " #include <linux/shmem_fs.h>",
+                    " #include <linux/mnt_idmapping.h>",
+                    "+#ifdef CONFIG_KSU_SUSFS",
+                    "+#include <linux/susfs_def.h>",
+                    "+#endif // #ifdef CONFIG_KSU_SUSFS",
+                    " ",
+                    " #include \"pnode.h\"",
+                    " #include \"internal.h\"",
+                ]
+                hunk2 = [
+                    "@@ -38,3 +41,11 @@",
+                    "+#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT",
+                    "+extern bool susfs_is_current_ksu_domain(void);",
+                    "+extern struct static_key_true susfs_is_sdcard_android_data_not_decrypted;",
+                    "+",
+                    "+#define CL_COPY_MNT_NS BIT(25) /* used by copy_mnt_ns() */",
+                    "+",
+                    "+#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT",
+                    " ",
+                    " /* Maximum number of mounts in a mount namespace */",
+                    " static unsigned int sysctl_mount_max __read_mostly = 100000;",
+                ]
+                result.extend(hunk1)
+                result.extend(hunk2)
+                j = i + 1
+                while j < len(body) and not body[j].startswith("@@"):
+                    j += 1
+                i = j
+                continue
+        result.append(line)
+        i += 1
+    return result
+
 def parse_hunk_header(line):
     match = re.match(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)", line)
     if not match:
@@ -351,6 +402,8 @@ def process_patch(patch):
         return None, info
 
     new_body = process_normal_file(body, target)
+    if target == "fs/namespace.c":
+        new_body = split_namespace_compound_hunk(new_body)
     new_body = clean_body(new_body)
 
     if not has_real_changes(new_body):
