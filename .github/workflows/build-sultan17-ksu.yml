@@ -55,7 +55,7 @@ concurrency:
 
 env:
   SULTAN_SOURCE: https://github.com/yapixel/SULTAN17
-  SULTAN_REF: 17.0.0-cp2a-clean
+  SULTAN_REF: 17.0.0-cp3a-clean
   ANYKERNEL_REPO: https://github.com/TheWildJames/AnyKernel3.git
   PATCHES_REPO: https://github.com/yapixel/kernel_patches
   SUSFS_REPO_URL: https://gitlab.com/simonpunk/susfs4ksu
