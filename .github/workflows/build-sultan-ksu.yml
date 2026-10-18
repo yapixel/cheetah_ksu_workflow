@@ -7,7 +7,7 @@ on:
         description: 'KernelSU Branch'
         required: true
         type: string
-        default: 'archive/staging-branch-link-recursive-b'
+        default: 'master'
       hook_mode:
         description: 'Hook Mode to Build'
         required: true
