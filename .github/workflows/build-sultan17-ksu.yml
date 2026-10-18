@@ -6,11 +6,8 @@ on:
       ksu_branch:
         description: 'KernelSU Branch'
         required: true
-        type: choice
-        options:
-          - 'master'
-          - 'staging'
-        default: 'master'
+        type: string
+        default: 'archive/staging-branch-link-recursive-b'
       hook_mode:
         description: 'Hook Mode to Build'
         required: true
