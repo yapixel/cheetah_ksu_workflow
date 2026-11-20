@@ -6,17 +6,20 @@ on:
       ksu_branch:
         description: 'KernelSU Branch'
         required: true
-        type: string
+        type: choice
+        options:
+          - 'master'
+          - 'staging'
         default: 'master'
       hook_mode:
         description: 'Hook Mode to Build'
         required: true
         type: choice
         options:
-          - 'manual'
           - 'lsm'
+          - 'manual'
           - 'all'
-        default: 'manual'
+        default: 'lsm'
       enable_susfs:
         description: 'SuSFS Integration'
         required: true
@@ -83,7 +86,7 @@ jobs:
 
   build_manual:
     name: Manual Hook (SUSFS=${{ matrix.enable_susfs }})
-    if: github.event.inputs.hook_mode == 'all' || github.event.inputs.hook_mode == 'manual' || github.event.inputs.hook_mode == '' || github.event_name != 'workflow_dispatch'
+    if: github.event.inputs.hook_mode == 'all' || github.event.inputs.hook_mode == 'manual'
     needs: matrix_prep
     runs-on: ubuntu-latest
     strategy:
@@ -585,7 +588,7 @@ jobs:
 
   build_lsm:
     name: LSM Hook (SUSFS=${{ matrix.enable_susfs }})
-    if: github.event.inputs.hook_mode == 'all' || github.event.inputs.hook_mode == 'lsm' || github.event_name != 'workflow_dispatch'
+    if: github.event.inputs.hook_mode == 'all' || github.event.inputs.hook_mode == 'lsm' || github.event.inputs.hook_mode == '' || github.event_name != 'workflow_dispatch'
     needs: matrix_prep
     runs-on: ubuntu-latest
     strategy:

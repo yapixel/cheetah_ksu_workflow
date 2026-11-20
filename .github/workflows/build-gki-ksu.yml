@@ -16,10 +16,10 @@ on:
         required: true
         type: choice
         options:
-          - "manual"
           - "lsm"
+          - "manual"
           - "all"
-        default: "manual"
+        default: "lsm"
       enable_susfs:
         description: "SuSFS Integration"
         required: true
@@ -94,11 +94,11 @@ jobs:
       - name: Calculate Dynamic Matrix
         id: matrix_calc
         run: |
-          HOOK_INPUT="${{ github.event.inputs.hook_mode || 'manual' }}"
+          HOOK_INPUT="${{ github.event.inputs.hook_mode || 'lsm' }}"
           SUSFS_INPUT="${{ github.event.inputs.enable_susfs || 'true' }}"
 
           if [ "$HOOK_INPUT" = "all" ]; then
-            echo 'hook_matrix=["manual", "lsm"]' >> "$GITHUB_OUTPUT"
+            echo 'hook_matrix=["lsm", "manual"]' >> "$GITHUB_OUTPUT"
           else
             echo "hook_matrix=[\"$HOOK_INPUT\"]" >> "$GITHUB_OUTPUT"
           fi

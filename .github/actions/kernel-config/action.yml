@@ -7,7 +7,7 @@ inputs:
   hook_mode:
     description: 'Hook mode (manual, lsm)'
     required: false
-    default: 'manual'
+    default: 'lsm'
   enable_susfs:
     description: 'Set to "true" to inject SuSFS configs'
     required: false

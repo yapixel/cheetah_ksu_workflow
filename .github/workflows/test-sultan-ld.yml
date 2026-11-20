@@ -22,9 +22,9 @@ on:
         required: true
         type: choice
         options:
-          - 'manual'
           - 'lsm'
-        default: 'manual'
+          - 'manual'
+        default: 'lsm'
       enable_susfs:
         description: 'Enable SuSFS'
         required: true
