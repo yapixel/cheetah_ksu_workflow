@@ -95,10 +95,12 @@ runs:
         CONFIG_IP_SET_HASH_NETIFACE=y
         CONFIG_IP_SET_LIST_SET=y
 
-        # TCP Congestion Control
+        # TCP Congestion Control (BBRv3 + BBRv1 fallback)
         CONFIG_TCP_CONG_ADVANCED=y
         CONFIG_TCP_CONG_BBR=y
+        CONFIG_TCP_CONG_BBR3=y
         CONFIG_NET_SCH_FQ=y
+        CONFIG_DEFAULT_BBR3=y
         CONFIG_DEFAULT_BBR=y
         EOF
 
