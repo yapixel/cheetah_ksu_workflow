@@ -41,6 +41,11 @@ on:
           - 'false'
           - 'all'
         default: 'true'
+      enable_bbrv3:
+        description: 'BBRv3 Congestion Control'
+        required: false
+        type: boolean
+        default: true
       use_ccache:
         description: 'Enable Ccache Acceleration'
         required: true
@@ -396,6 +401,27 @@ jobs:
               echo "⚠️ Optional patch not found: $patch, skipping"
             fi
           done
+
+      - name: Apply BBRv3 Patch
+        if: ${{ github.event.inputs.enable_bbrv3 != 'false' }}
+        working-directory: sultan
+        run: |
+          set -e
+          BBR3_PATCH="${{ github.workspace }}/.github/patches/bbrv3_sultan.patch"
+          if [ -f "$BBR3_PATCH" ]; then
+            if [ -f "net/ipv4/tcp_bbr3.c" ]; then
+              echo "ℹ️ BBRv3 source (tcp_bbr3.c) already exists in kernel tree, skipping patch application"
+            else
+              echo "🚀 Applying BBRv3 patch for Sultan kernel..."
+              if ! patch -p1 < "$BBR3_PATCH"; then
+                echo "❌ ERROR: Failed to apply BBRv3 patch: $BBR3_PATCH"
+                exit 1
+              fi
+              echo "✅ Applied: $(basename "$BBR3_PATCH")"
+            fi
+          else
+            echo "⚠️ BBRv3 patch file not found at $BBR3_PATCH, skipping"
+          fi
 
       - name: Apply Manual Hook Patches
         if: matrix.hook_mode == 'manual'

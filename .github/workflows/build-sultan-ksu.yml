@@ -44,6 +44,21 @@ on:
         required: false
         type: boolean
         default: false
+      sultan_source:
+        description: 'Sultan Kernel Source Repo'
+        required: false
+        type: string
+        default: 'https://github.com/yapixel/android_kernel_google_tensynos'
+      sultan_tag:
+        description: 'Sultan Branch or Tag'
+        required: false
+        type: string
+        default: '16.0.0-sultan'
+      enable_bbrv3:
+        description: 'BBRv3 Congestion Control'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -54,8 +69,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  SULTAN_SOURCE: https://github.com/kerneltoast/android_kernel_google_tensynos
-  SULTAN_TAG: 20260314
+  SULTAN_SOURCE: ${{ github.event.inputs.sultan_source || 'https://github.com/yapixel/android_kernel_google_tensynos' }}
+  SULTAN_TAG: ${{ github.event.inputs.sultan_tag || '16.0.0-sultan' }}
   ANYKERNEL_REPO: https://github.com/TheWildJames/AnyKernel3.git
   PATCHES_REPO: https://github.com/yapixel/kernel_patches
   SUSFS_REPO_URL: https://gitlab.com/simonpunk/susfs4ksu
@@ -352,6 +367,27 @@ jobs:
             fi
             echo "✅ Applied: $(basename $patch)"
           done
+
+      - name: Apply BBRv3 Patch
+        if: ${{ github.event.inputs.enable_bbrv3 != 'false' }}
+        working-directory: sultan
+        run: |
+          set -e
+          BBR3_PATCH="${{ github.workspace }}/.github/patches/bbrv3_sultan.patch"
+          if [ -f "$BBR3_PATCH" ]; then
+            if [ -f "net/ipv4/tcp_bbr3.c" ]; then
+              echo "ℹ️ BBRv3 source (tcp_bbr3.c) already exists in kernel tree, skipping patch application"
+            else
+              echo "🚀 Applying BBRv3 patch for Sultan kernel..."
+              if ! patch -p1 < "$BBR3_PATCH"; then
+                echo "❌ ERROR: Failed to apply BBRv3 patch: $BBR3_PATCH"
+                exit 1
+              fi
+              echo "✅ Applied: $(basename "$BBR3_PATCH")"
+            fi
+          else
+            echo "⚠️ BBRv3 patch file not found at $BBR3_PATCH, skipping"
+          fi
 
       - name: Apply Manual Hook Patches
         working-directory: sultan
@@ -854,6 +890,27 @@ jobs:
             fi
             echo "✅ Applied: $(basename $patch)"
           done
+
+      - name: Apply BBRv3 Patch
+        if: ${{ github.event.inputs.enable_bbrv3 != 'false' }}
+        working-directory: sultan
+        run: |
+          set -e
+          BBR3_PATCH="${{ github.workspace }}/.github/patches/bbrv3_sultan.patch"
+          if [ -f "$BBR3_PATCH" ]; then
+            if [ -f "net/ipv4/tcp_bbr3.c" ]; then
+              echo "ℹ️ BBRv3 source (tcp_bbr3.c) already exists in kernel tree, skipping patch application"
+            else
+              echo "🚀 Applying BBRv3 patch for Sultan kernel..."
+              if ! patch -p1 < "$BBR3_PATCH"; then
+                echo "❌ ERROR: Failed to apply BBRv3 patch: $BBR3_PATCH"
+                exit 1
+              fi
+              echo "✅ Applied: $(basename "$BBR3_PATCH")"
+            fi
+          else
+            echo "⚠️ BBRv3 patch file not found at $BBR3_PATCH, skipping"
+          fi
 
       - name: Apply SuSFS Patches
         if: matrix.enable_susfs == 'true'
