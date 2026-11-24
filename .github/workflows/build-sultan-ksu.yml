@@ -122,7 +122,7 @@ jobs:
 
       - name: Set up build environment and ccache
         run: |
-          sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev 2>/dev/null || (sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev)
+          sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev bc 2>/dev/null || (sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev bc)
           if [ "${{ github.event.inputs.use_ccache }}" != "false" ]; then
             mkdir -p ${{ github.workspace }}/.ccache
             mkdir -p /dev/shm/ccache-temp
@@ -265,13 +265,19 @@ jobs:
           
           KSU_BRANCH="${{ github.event.inputs.ksu_branch || 'master' }}"
           
-          # Get KSU version with proper error handling
+          # Get KSU version with proper error handling and Makefile fallback
           echo "🔍 Fetching KernelSU version from branch: $KSU_BRANCH..."
-          K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" 2>&1) || {
-            echo "⚠️  Warning: Failed to retrieve KernelSU version from $KSU_BRANCH"
-            echo "   Using fallback value 'unknown'"
-            K_VER="unknown"
-          }
+          K_VER=""
+          if command -v bc >/dev/null 2>&1 && [ -x "./sh/get_ksuver.sh" ]; then
+            RAW_K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" 2>/dev/null || true)
+            if [[ "$RAW_K_VER" =~ ^[0-9]+$ ]]; then
+              K_VER="$RAW_K_VER"
+            fi
+          fi
+          if [ -z "$K_VER" ] || [ "$K_VER" = "unknown" ]; then
+            RAW_MAKEFILE=$(curl -fsSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://raw.githubusercontent.com/${{ env.KSU_REPO }}/${KSU_BRANCH}/kernel/Makefile" 2>/dev/null || curl -fsSL "https://raw.githubusercontent.com/${{ env.KSU_REPO }}/${KSU_BRANCH}/kernel/Makefile" 2>/dev/null || true)
+            K_VER=$(echo "$RAW_MAKEFILE" | grep -E 'KSU_VERSION[ =:]*[0-9]+' | head -n1 | grep -oE '[0-9]+' || echo "unknown")
+          fi
           
           # Sanitize version strings (remove extra whitespace)
           K_VER="${K_VER// /}"
@@ -345,6 +351,10 @@ jobs:
           
           KSU_COMMIT=$(git -C KernelSU rev-parse --short HEAD 2>/dev/null || echo "")
           echo "KSU_COMMIT=$KSU_COMMIT" >> "$GITHUB_ENV"
+          LOCAL_KSU_VER=$(grep -E 'KSU_VERSION[ =:]*[0-9]+' KernelSU/kernel/Makefile | head -n1 | grep -oE '[0-9]+' || echo "")
+          if [ -n "$LOCAL_KSU_VER" ]; then
+            echo "KSU_VER=$LOCAL_KSU_VER" >> "$GITHUB_ENV"
+          fi
           
           echo "📋 Applying Sultan kernel patches..."
           PATCHES=(
@@ -519,7 +529,12 @@ jobs:
           echo "📦 Packaging kernel and artifacts..."
           
           # Validate required metadata from previous step
-          K_VER="${{ steps.meta.outputs.ksu_ver }}"
+          K_VER="${{ env.KSU_VER || steps.meta.outputs.ksu_ver }}"
+          if [ -z "$K_VER" ] || [ "$K_VER" = "unknown" ]; then
+            if [ -f "sultan/KernelSU/kernel/Makefile" ]; then
+              K_VER=$(grep -E 'KSU_VERSION[ =:]*[0-9]+' sultan/KernelSU/kernel/Makefile | head -n1 | grep -oE '[0-9]+' || echo "unknown")
+            fi
+          fi
           KERNEL_VER="${{ steps.meta.outputs.kernel_ver }}"
           S_TAG="${{ steps.meta.outputs.s_tag }}"
           SUSFS_VER="${{ steps.meta.outputs.susfs_ver }}"
@@ -644,7 +659,7 @@ jobs:
 
       - name: Set up build environment and ccache
         run: |
-          sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev 2>/dev/null || (sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev)
+          sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev bc 2>/dev/null || (sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev bc)
           if [ "${{ github.event.inputs.use_ccache }}" != "false" ]; then
             mkdir -p ${{ github.workspace }}/.ccache
             mkdir -p /dev/shm/ccache-temp
@@ -787,13 +802,19 @@ jobs:
           
           KSU_BRANCH="${{ github.event.inputs.ksu_branch || 'master' }}"
           
-          # Get KSU version with proper error handling
+          # Get KSU version with proper error handling and Makefile fallback
           echo "🔍 Fetching KernelSU version from branch: $KSU_BRANCH..."
-          K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" 2>&1) || {
-            echo "⚠️  Warning: Failed to retrieve KernelSU version from $KSU_BRANCH"
-            echo "   Using fallback value 'unknown'"
-            K_VER="unknown"
-          }
+          K_VER=""
+          if command -v bc >/dev/null 2>&1 && [ -x "./sh/get_ksuver.sh" ]; then
+            RAW_K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" 2>/dev/null || true)
+            if [[ "$RAW_K_VER" =~ ^[0-9]+$ ]]; then
+              K_VER="$RAW_K_VER"
+            fi
+          fi
+          if [ -z "$K_VER" ] || [ "$K_VER" = "unknown" ]; then
+            RAW_MAKEFILE=$(curl -fsSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://raw.githubusercontent.com/${{ env.KSU_REPO }}/${KSU_BRANCH}/kernel/Makefile" 2>/dev/null || curl -fsSL "https://raw.githubusercontent.com/${{ env.KSU_REPO }}/${KSU_BRANCH}/kernel/Makefile" 2>/dev/null || true)
+            K_VER=$(echo "$RAW_MAKEFILE" | grep -E 'KSU_VERSION[ =:]*[0-9]+' | head -n1 | grep -oE '[0-9]+' || echo "unknown")
+          fi
           
           # Sanitize version strings (remove extra whitespace)
           K_VER="${K_VER// /}"
@@ -867,6 +888,10 @@ jobs:
           
           KSU_COMMIT=$(git -C KernelSU rev-parse --short HEAD 2>/dev/null || echo "")
           echo "KSU_COMMIT=$KSU_COMMIT" >> "$GITHUB_ENV"
+          LOCAL_KSU_VER=$(grep -E 'KSU_VERSION[ =:]*[0-9]+' KernelSU/kernel/Makefile | head -n1 | grep -oE '[0-9]+' || echo "")
+          if [ -n "$LOCAL_KSU_VER" ]; then
+            echo "KSU_VER=$LOCAL_KSU_VER" >> "$GITHUB_ENV"
+          fi
           
           echo "📋 Applying Sultan kernel patches..."
           PATCHES=(
@@ -1017,7 +1042,12 @@ jobs:
           echo "📦 Packaging kernel and artifacts..."
           
           # Validate required metadata from previous step
-          K_VER="${{ steps.meta.outputs.ksu_ver }}"
+          K_VER="${{ env.KSU_VER || steps.meta.outputs.ksu_ver }}"
+          if [ -z "$K_VER" ] || [ "$K_VER" = "unknown" ]; then
+            if [ -f "sultan/KernelSU/kernel/Makefile" ]; then
+              K_VER=$(grep -E 'KSU_VERSION[ =:]*[0-9]+' sultan/KernelSU/kernel/Makefile | head -n1 | grep -oE '[0-9]+' || echo "unknown")
+            fi
+          fi
           KERNEL_VER="${{ steps.meta.outputs.kernel_ver }}"
           S_TAG="${{ steps.meta.outputs.s_tag }}"
           SUSFS_VER="${{ steps.meta.outputs.susfs_ver }}"

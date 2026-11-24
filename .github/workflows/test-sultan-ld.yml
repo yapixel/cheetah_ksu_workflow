@@ -86,7 +86,7 @@ jobs:
 
       - name: Set up build environment and ccache
         run: |
-          sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev 2>/dev/null || (sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev)
+          sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev bc 2>/dev/null || (sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ccache aria2 libdw-dev bc)
           if [ "${{ github.event.inputs.use_ccache }}" != "false" ]; then
             mkdir -p ${{ github.workspace }}/.ccache
             mkdir -p /dev/shm/ccache-temp
@@ -194,7 +194,17 @@ jobs:
           fi
           
           KSU_BRANCH="${{ github.event.inputs.ksu_branch || 'master' }}"
-          K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" 2>&1) || K_VER="unknown"
+          K_VER=""
+          if command -v bc >/dev/null 2>&1 && [ -x "./sh/get_ksuver.sh" ]; then
+            RAW_K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" 2>/dev/null || true)
+            if [[ "$RAW_K_VER" =~ ^[0-9]+$ ]]; then
+              K_VER="$RAW_K_VER"
+            fi
+          fi
+          if [ -z "$K_VER" ] || [ "$K_VER" = "unknown" ]; then
+            RAW_MAKEFILE=$(curl -fsSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://raw.githubusercontent.com/${{ env.KSU_REPO }}/${KSU_BRANCH}/kernel/Makefile" 2>/dev/null || curl -fsSL "https://raw.githubusercontent.com/${{ env.KSU_REPO }}/${KSU_BRANCH}/kernel/Makefile" 2>/dev/null || true)
+            K_VER=$(echo "$RAW_MAKEFILE" | grep -E 'KSU_VERSION[ =:]*[0-9]+' | head -n1 | grep -oE '[0-9]+' || echo "unknown")
+          fi
           K_VER="${K_VER// /}"
           
           KERNEL_VER=$(make -C sultan -s kernelversion 2>/dev/null || true)

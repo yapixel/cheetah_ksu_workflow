@@ -374,7 +374,17 @@ jobs:
         id: meta
         run: |
           KSU_BRANCH="${{ github.event.inputs.ksu_branch || 'master' }}"
-          K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" || echo "unknown")
+          K_VER=""
+          if command -v bc >/dev/null 2>&1 && [ -x "./sh/get_ksuver.sh" ]; then
+            RAW_K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" 2>/dev/null || true)
+            if [[ "$RAW_K_VER" =~ ^[0-9]+$ ]]; then
+              K_VER="$RAW_K_VER"
+            fi
+          fi
+          if [ -z "$K_VER" ] || [ "$K_VER" = "unknown" ]; then
+            RAW_MAKEFILE=$(curl -fsSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://raw.githubusercontent.com/${{ env.KSU_REPO }}/${KSU_BRANCH}/kernel/Makefile" 2>/dev/null || curl -fsSL "https://raw.githubusercontent.com/${{ env.KSU_REPO }}/${KSU_BRANCH}/kernel/Makefile" 2>/dev/null || true)
+            K_VER=$(echo "$RAW_MAKEFILE" | grep -E 'KSU_VERSION[ =:]*[0-9]+' | head -n1 | grep -oE '[0-9]+' || echo "unknown")
+          fi
 
           RAW_CLANG_STR=$("${CLANG_PATH}/clang" --version 2>&1 | head -n1 || echo "Clang 17.0.6")
           TOOLCHAIN_DISPLAY="$RAW_CLANG_STR"
@@ -424,13 +434,22 @@ jobs:
           git clone --depth=1 --branch="$KSU_BRANCH" https://github.com/${{ env.KSU_REPO }}.git KernelSU
           KSU_COMMIT=$(git -C KernelSU rev-parse --short HEAD 2>/dev/null || echo "")
           echo "KSU_COMMIT=$KSU_COMMIT" >> "$GITHUB_ENV"
+          LOCAL_KSU_VER=$(grep -E 'KSU_VERSION[ =:]*[0-9]+' KernelSU/kernel/Makefile | head -n1 | grep -oE '[0-9]+' || echo "")
+          if [ -n "$LOCAL_KSU_VER" ]; then
+            echo "KSU_VER=$LOCAL_KSU_VER" >> "$GITHUB_ENV"
+          fi
           ln -sf ../KernelSU/kernel drivers/kernelsu
 
           grep -q "kernelsu" drivers/Makefile || echo 'obj-$(CONFIG_KSU) += kernelsu/' >> drivers/Makefile
 
           grep -q "drivers/kernelsu/Kconfig" drivers/Kconfig || sed -i '/endmenu/i source "drivers/kernelsu/Kconfig"' drivers/Kconfig
 
-          K_VER="${{ steps.meta.outputs.ksu_ver }}"
+          K_VER="${{ env.KSU_VER || steps.meta.outputs.ksu_ver }}"
+          if [ -z "$K_VER" ] || [ "$K_VER" = "unknown" ]; then
+            if [ -f "common/KernelSU/kernel/Makefile" ]; then
+              K_VER=$(grep -E 'KSU_VERSION[ =:]*[0-9]+' common/KernelSU/kernel/Makefile | head -n1 | grep -oE '[0-9]+' || echo "unknown")
+            fi
+          fi
           KSU_MAKEFILE="drivers/kernelsu/Makefile"
           if [ -f "$KSU_MAKEFILE" ]; then
             echo "" >> "$KSU_MAKEFILE"
@@ -539,7 +558,12 @@ jobs:
 
           DATE=$(date +"%y%m%d")
           KSU_BRANCH="${{ github.event.inputs.ksu_branch || 'master' }}"
-          K_VER="${{ steps.meta.outputs.ksu_ver }}"
+          K_VER="${{ env.KSU_VER || steps.meta.outputs.ksu_ver }}"
+          if [ -z "$K_VER" ] || [ "$K_VER" = "unknown" ]; then
+            if [ -f "common/KernelSU/kernel/Makefile" ]; then
+              K_VER=$(grep -E 'KSU_VERSION[ =:]*[0-9]+' common/KernelSU/kernel/Makefile | head -n1 | grep -oE '[0-9]+' || echo "unknown")
+            fi
+          fi
           KERNEL_VER="${{ steps.meta.outputs.kernel_ver_full }}"
           SUSFS_VER="${{ steps.meta.outputs.susfs_ver }}"
 
