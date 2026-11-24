@@ -221,11 +221,19 @@ jobs:
         run: |
           set -e
           KSU_BRANCH="${{ github.event.inputs.ksu_branch || 'master' }}"
-          SETUP_SCRIPT="ksu_setup.sh"
-          curl -LSs --max-time 30 "https://raw.githubusercontent.com/${{ env.KSU_REPO }}/$KSU_BRANCH/kernel/setup.sh" -o "$SETUP_SCRIPT"
-          chmod +x "$SETUP_SCRIPT"
-          ./"$SETUP_SCRIPT" "$KSU_BRANCH"
-          rm -f "$SETUP_SCRIPT"
+          echo "📥 Setting up KernelSU ($KSU_BRANCH)..."
+          git clone --depth=1 --single-branch --no-tags --branch="$KSU_BRANCH" "https://github.com/${{ env.KSU_REPO }}" KernelSU
+          ln -sf ../KernelSU/kernel drivers/kernelsu
+          grep -q "kernelsu" drivers/Makefile || echo 'obj-$(CONFIG_KSU) += kernelsu/' >> drivers/Makefile
+          grep -q "kernelsu" drivers/Kconfig || sed -i '/endmenu/i source "drivers/kernelsu/Kconfig"' drivers/Kconfig
+
+          cp -r KernelSU/uapi KernelSU/kernel/uapi 2>/dev/null || true
+          echo 'ccflags-y += -I$(srctree)/drivers/kernelsu' >> drivers/kernelsu/Makefile
+          mkdir -p include/uapi
+          cp -f KernelSU/kernel/policy/*.h include/uapi/ 2>/dev/null || true
+          cp -f KernelSU/kernel/policy/*.h include/ 2>/dev/null || true
+          cp -f KernelSU/kernel/include/*.h include/ 2>/dev/null || true
+          cp -f KernelSU/kernel/uapi/*.h include/uapi/ 2>/dev/null || true
           
           KSU_COMMIT=$(git -C KernelSU rev-parse --short HEAD 2>/dev/null || echo "")
           echo "KSU_COMMIT=$KSU_COMMIT" >> "$GITHUB_ENV"
