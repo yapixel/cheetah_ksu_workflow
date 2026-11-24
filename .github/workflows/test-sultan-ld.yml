@@ -60,7 +60,7 @@ env:
   SUSFS_REPO_URL: https://gitlab.com/simonpunk/susfs4ksu
   SUSFS_REPO_BRANCH: sultan-shiba-susfs-minimal
   SCRIPTS_REPO: https://github.com/TheSillyOk/sh
-  KSU_REPO: backslashxx/KernelSU
+  KSU_REPO: yapixel/KernelSU
   ARM_TOOLCHAIN_VERSION: "14.2.rel1"
   CCACHE_DIR: "${{ github.workspace }}/.ccache"
   CCACHE_COMPILERCHECK: "content"
@@ -194,7 +194,7 @@ jobs:
           fi
           
           KSU_BRANCH="${{ github.event.inputs.ksu_branch || 'master' }}"
-          K_VER=$(./sh/get_ksuver.sh "backslashxx" "KernelSU" "$KSU_BRANCH" 2>&1) || K_VER="unknown"
+          K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" 2>&1) || K_VER="unknown"
           K_VER="${K_VER// /}"
           
           KERNEL_VER=$(make -C sultan -s kernelversion 2>/dev/null || true)

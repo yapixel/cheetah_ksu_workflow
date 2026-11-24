@@ -76,7 +76,7 @@ env:
   SUSFS_REPO_URL: https://gitlab.com/simonpunk/susfs4ksu
   SUSFS_REPO_BRANCH: sultan-shiba-susfs-minimal
   SCRIPTS_REPO: https://github.com/TheSillyOk/sh
-  KSU_REPO: backslashxx/KernelSU
+  KSU_REPO: yapixel/KernelSU
   ARM_TOOLCHAIN_VERSION: "14.2.rel1"
   CCACHE_DIR: "${{ github.workspace }}/.ccache"
   CCACHE_COMPILERCHECK: "content"
@@ -267,7 +267,7 @@ jobs:
           
           # Get KSU version with proper error handling
           echo "🔍 Fetching KernelSU version from branch: $KSU_BRANCH..."
-          K_VER=$(./sh/get_ksuver.sh "backslashxx" "KernelSU" "$KSU_BRANCH" 2>&1) || {
+          K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" 2>&1) || {
             echo "⚠️  Warning: Failed to retrieve KernelSU version from $KSU_BRANCH"
             echo "   Using fallback value 'unknown'"
             K_VER="unknown"
@@ -790,7 +790,7 @@ jobs:
           
           # Get KSU version with proper error handling
           echo "🔍 Fetching KernelSU version from branch: $KSU_BRANCH..."
-          K_VER=$(./sh/get_ksuver.sh "backslashxx" "KernelSU" "$KSU_BRANCH" 2>&1) || {
+          K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" 2>&1) || {
             echo "⚠️  Warning: Failed to retrieve KernelSU version from $KSU_BRANCH"
             echo "   Using fallback value 'unknown'"
             K_VER="unknown"

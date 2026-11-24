@@ -66,7 +66,7 @@ env:
   SUSFS_REPO_URL: https://gitlab.com/simonpunk/susfs4ksu
   SUSFS_REPO_BRANCH: gki-android14-6.1
   SCRIPTS_REPO: https://github.com/TheSillyOk/sh
-  KSU_REPO: backslashxx/KernelSU
+  KSU_REPO: yapixel/KernelSU
   CLANG_VERSION: 17.0.6
   ARM_TOOLCHAIN_VERSION: 14.2.rel1
   CCACHE_DIR: ${{ github.workspace }}/.ccache
@@ -374,7 +374,7 @@ jobs:
         id: meta
         run: |
           KSU_BRANCH="${{ github.event.inputs.ksu_branch || 'master' }}"
-          K_VER=$(./sh/get_ksuver.sh "backslashxx" "KernelSU" "$KSU_BRANCH" || echo "unknown")
+          K_VER=$(./sh/get_ksuver.sh "yapixel" "KernelSU" "$KSU_BRANCH" || echo "unknown")
 
           RAW_CLANG_STR=$("${CLANG_PATH}/clang" --version 2>&1 | head -n1 || echo "Clang 17.0.6")
           TOOLCHAIN_DISPLAY="$RAW_CLANG_STR"

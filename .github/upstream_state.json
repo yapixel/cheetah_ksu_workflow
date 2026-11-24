@@ -1,5 +1,5 @@
 {
-  "ksu_repo": "backslashxx/KernelSU",
+  "ksu_repo": "yapixel/KernelSU",
   "ksu_branch": "master",
   "ksu_last_sha": "1d9ec974f0ab4e8181d4ba2545fa16ca32582675",
   "susfs_repo": "https://gitlab.com/simonpunk/susfs4ksu.git",

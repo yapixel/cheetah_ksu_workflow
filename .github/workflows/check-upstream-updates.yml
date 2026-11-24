@@ -36,7 +36,7 @@ jobs:
             exit 1
           fi
 
-          KSU_REPO=$(jq -r '.ksu_repo // "backslashxx/KernelSU"' "$STATE_FILE")
+          KSU_REPO=$(jq -r '.ksu_repo // "yapixel/KernelSU"' "$STATE_FILE")
           KSU_BRANCH=$(jq -r '.ksu_branch // "master"' "$STATE_FILE")
           OLD_KSU_SHA=$(jq -r '.ksu_last_sha // ""' "$STATE_FILE")
 

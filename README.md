@@ -23,7 +23,7 @@ Automated GitHub Actions CI/CD pipeline for building and packaging **Sultan Kern
 This repository features a fully automated upstream monitoring system:
 - **🔄 Scheduled Polling**: Automatically polls upstream repositories every **3 hours** (`cron: '0 */3 * * *'`).
 - **🎯 Dual-Upstream Tracking**:
-  - **KernelSU**: Monitors `backslashxx/KernelSU:master` for new commits.
+  - **KernelSU**: Monitors `yapixel/KernelSU:master` for new commits.
   - **SuSFS**: Monitors `gitlab.com/simonpunk/susfs4ksu:gki-android14-6.1` for new commits.
 - **🚀 Automated Build Dispatch**: Whenever an upstream update is detected, the workflow automatically updates state and triggers both Google GKI (`build-gki-ksu.yml`) and Sultan (`build-sultan-ksu.yml`) build pipelines concurrently.
 - **🏷️ Dynamic Commit Short Hash**: All release notes record and display the exact upstream commit IDs (e.g. `master (v32595 @ 06d3e0a)` and `SuSFS v2.2.0 (598370f)`).
@@ -106,6 +106,6 @@ Flashing custom kernels and modifying system partitions involves inherent risks.
 ## 🙏 Credits & Acknowledgements
 
 - **Sultan Kernel**: [kerneltoast (Sultan Alsawaf)](https://github.com/kerneltoast)
-- **KernelSU**: [tiann](https://github.com/tiann/KernelSU) & [backslashxx (xxKSU)](https://github.com/backslashxx/KernelSU)
+- **KernelSU**: [tiann](https://github.com/tiann/KernelSU) & [yapixel (xxKSU)](https://github.com/yapixel/KernelSU)
 - **SuSFS**: [simonpunk](https://gitlab.com/simonpunk/susfs4ksu)
 - **AnyKernel3**: [osm0sis](https://github.com/osm0sis/AnyKernel3)
